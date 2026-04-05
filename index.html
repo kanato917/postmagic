@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNS投稿ダッシュボード | SaaS Promo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- アイコン用にLucideを利用 -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <i data-lucide="sparkles" class="logo-icon"></i>
+        <span>PostMagic</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="hero-section">
+        <h1>SNS投稿をかんたんに作成・予約</h1>
+        <p>元ネタを入力するだけで、XやInstagram向けの投稿文を自動生成できます。</p>
+      </div>
+
+      <div class="layout-grid">
+        <!-- フォームエリア -->
+        <div class="card form-card">
+          <form id="postForm" class="post-form">
+            
+            <!-- SNS選択 -->
+            <div class="form-group">
+              <label class="form-label">投稿先SNS <span class="required badge">*</span></label>
+              <div class="sns-selector">
+                <label class="sns-option">
+                  <input type="checkbox" name="sns" value="x" checked>
+                  <div class="sns-card">
+                    <i data-lucide="twitter"></i>
+                    <span>X (Twitter)</span>
+                  </div>
+                </label>
+                <label class="sns-option">
+                  <input type="checkbox" name="sns" value="instagram">
+                  <div class="sns-card">
+                    <i data-lucide="instagram"></i>
+                    <span>Instagram</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- 元ネタ入力 -->
+            <div class="form-group source-group">
+              <label class="form-label">元ネタ <span class="required badge">*</span></label>
+              
+              <div class="source-inputs-grid">
+                <!-- 文章入力欄 -->
+                <div class="source-item">
+                  <label class="form-label-sub" for="sourceText">文章入力</label>
+                  <textarea id="sourceText" name="sourceText" class="form-control textarea-source" placeholder="文章を直接入力してください"></textarea>
+                </div>
+                
+                <!-- 画像アップロード欄 -->
+                <div class="source-item">
+                  <label class="form-label-sub" for="sourceImage">画像アップロード</label>
+                  <div class="file-upload-area">
+                    <input type="file" id="sourceImage" name="sourceImage" accept="image/*" multiple class="file-input-hidden">
+                    <div class="file-upload-label">
+                      <i data-lucide="image-plus"></i>
+                      <span class="file-label-main">画像を選択</span>
+                      <small>画像をアップロード<br>（Instagram用）</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 外部URL欄 -->
+                <div class="source-item source-url-col">
+                  <label class="form-label-sub" for="sourceUrl">外部URL</label>
+                  <input type="url" id="sourceUrl" name="sourceUrl" class="form-control" placeholder="記事URL、noteなど（https://...）">
+                </div>
+              </div>
+            </div>
+
+            <!-- 詳細設定（アコーディオン） -->
+            <div class="form-group">
+              <details class="advanced-settings">
+                <summary class="advanced-summary">
+                  <i data-lucide="settings-2"></i> 詳細設定を開く
+                </summary>
+                <div class="advanced-content">
+                  
+                  <div class="form-row">
+                    <!-- 目的 -->
+                    <div class="form-group-sub">
+                      <label class="form-label-sub" for="purpose">投稿の目的</label>
+                      <select id="purpose" name="purpose" class="form-control">
+                        <option value="none">指定なし</option>
+                        <option value="awareness">認知拡大</option>
+                        <option value="promotion">集客・告知</option>
+                        <option value="product">商品紹介</option>
+                      </select>
+                    </div>
+
+                    <!-- トーン -->
+                    <div class="form-group-sub">
+                      <label class="form-label-sub" for="tone">文体・トーン</label>
+                      <select id="tone" name="tone" class="form-control">
+                        <option value="casual">カジュアル</option>
+                        <option value="polite">丁寧</option>
+                        <option value="professional">専門的</option>
+                        <option value="friendly">親しみやすい</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <!-- ハッシュタグ -->
+                    <div class="form-group-sub toggle-group">
+                      <label class="toggle-label" for="hashtag">
+                        <span>ハッシュタグを付与</span>
+                        <div class="toggle-switch">
+                          <input type="checkbox" id="hashtag" name="hashtag" checked>
+                          <span class="slider round"></span>
+                        </div>
+                      </label>
+                    </div>
+
+                    <!-- 画像 -->
+                    <div class="form-group-sub toggle-group">
+                      <label class="toggle-label" for="withImage">
+                        <span>画像を自動生成</span>
+                        <div class="toggle-switch">
+                          <input type="checkbox" id="withImage" name="withImage">
+                          <span class="slider round"></span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- メモ -->
+                  <div class="form-group-sub mt-3">
+                    <label class="form-label-sub" for="memo">補足メモ</label>
+                    <textarea id="memo" name="memo" class="form-control" rows="2" placeholder="AIに伝えたい補足事項があれば入力してください。"></textarea>
+                  </div>
+
+                </div>
+              </details>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 投稿日時 -->
+            <div class="form-group datetime-group">
+              <label class="form-label" for="scheduleDatetime">投稿日時 <span class="required badge">*</span></label>
+              <div class="datetime-input-wrapper">
+                <i data-lucide="calendar" class="input-icon"></i>
+                <input type="datetime-local" id="scheduleDatetime" name="scheduleDatetime" class="form-control pl-10" required>
+              </div>
+            </div>
+
+            <!-- 送信ボタン -->
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg w-full">
+                <i data-lucide="wand-2"></i> 下書きを作成する
+              </button>
+              <p class="terms-text">※送信後、Make連携によりNotion等にデータが保存され、自動処理が開始されます。</p>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- プレビューエリア -->
+        <div class="card preview-card" id="previewArea">
+          <div class="preview-header">
+            <h2 class="preview-title">プレビュー（下書きイメージ）</h2>
+            <div class="preview-tabs">
+              <button class="tab-btn active" data-target="preview-x">
+                <i data-lucide="twitter" class="tab-icon"></i> X
+              </button>
+              <button class="tab-btn" data-target="preview-ig">
+                <i data-lucide="instagram" class="tab-icon"></i> Instagram
+              </button>
+            </div>
+          </div>
+          
+          <div class="preview-body">
+            <!-- X プレビュー -->
+            <div class="mockup-view active" id="preview-x">
+              <div class="post-author">
+                <div class="author-avatar"></div>
+                <div class="author-info">
+                  <span class="author-name">あなたの名前</span>
+                  <span class="author-id">@your_account</span>
+                </div>
+              </div>
+              <div class="post-content">
+                <p id="previewTextX">ここに自動生成されたX向けの短くキャッチーなテキストが入ります。<br><br>#ハッシュタグ #サンプル</p>
+              </div>
+              <div class="post-image-placeholder x-placeholder" style="display: none;">
+                <i data-lucide="image"></i>
+                <span>自動生成画像</span>
+              </div>
+            </div>
+
+            <!-- Instagram プレビュー -->
+            <div class="mockup-view" id="preview-ig">
+              <div class="post-author">
+                <div class="author-avatar"></div>
+                <div class="author-info">
+                  <span class="author-name">your_account</span>
+                </div>
+              </div>
+              <div class="post-image-placeholder ig-placeholder">
+                <i data-lucide="image"></i>
+                <span>自動生成画像<br>（Instagram用は画像が必須になります）</span>
+              </div>
+              <div class="post-content">
+                <p id="previewTextIg"><strong>your_account</strong> ここにInstagram向けの少し長めで詳細なテキストと、複数のハッシュタグが入る想定です。<br><br>#インスタ #ハッシュタグ #サンプル</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
