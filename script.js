@@ -4,27 +4,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ----- Form handling -----
   const postForm = document.getElementById('postForm');
-  
-  postForm.addEventListener('submit', (e) => {
+
+  postForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // Simulate a submission process
+
     const submitBtn = postForm.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    
-    submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> 処理中...';
+
+    submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> 送信中...';
     lucide.createIcons();
     submitBtn.disabled = true;
 
-    // Simulate API call to Make/Notion
-    setTimeout(() => {
-      alert("下書きリクエストを送信しました！\n（※システム側の処理が完了するとNotionに反映されます）");
+    const payload = {
+      sns: Array.from(postForm.querySelectorAll('input[name="sns"]:checked')).map(cb => cb.value),
+      sourceText: document.getElementById('sourceText').value,
+      sourceUrl: document.getElementById('sourceUrl').value,
+      purpose: document.getElementById('purpose').value,
+      tone: document.getElementById('tone').value,
+      hashtag: document.getElementById('hashtag').checked,
+      withImage: document.getElementById('withImage').checked,
+      memo: document.getElementById('memo').value,
+      scheduleDatetime: document.getElementById('scheduleDatetime').value,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      // ★ここにMake.comのWebhook URLを貼り付けます！
+      const WEBHOOK_URL = 'https://hook.eu1.make.com/xdrqbno2q72vqyj39owolec54b9m8yhe';
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        alert("送信成功！Notionを確認してください。");
+        postForm.reset();
+        updatePreview();
+      } else {
+        throw new Error('送信エラー');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert("送信に失敗しました。");
+    } finally {
       submitBtn.innerHTML = originalText;
       lucide.createIcons();
       submitBtn.disabled = false;
-      postForm.reset();
-      updatePreview();
-    }, 1500);
+    }
   });
 
   // ----- Tab Switching in Preview -----
@@ -40,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Hide all mockups
       mockupViews.forEach(m => m.classList.remove('active'));
-      
+
       // Show target mockup
       const targetId = btn.getAttribute('data-target');
       document.getElementById(targetId).classList.add('active');
@@ -77,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updatePreview() {
     const text = sourceText.value.trim();
     const url = sourceUrl.value.trim();
-    
+
     let combinedText = text;
     if (url) {
       combinedText += (combinedText ? '\n\n' : '') + `参考URL: ${url}`;
@@ -89,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       const truncatedX = combinedText.length > 100 ? combinedText.substring(0, 100) + '...' : combinedText;
       previewTextX.textContent = truncatedX + '\n\n#自動化 #SaaS';
-      
+
       previewTextIg.innerHTML = `<strong>your_account</strong> ${combinedText}\n\n👇詳細はこちら\n#自動投稿 #便利ツール #SaaS`;
     }
 
@@ -107,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       xPlaceholder.style.display = 'none';
-      igPlaceholder.style.display = 'flex'; 
+      igPlaceholder.style.display = 'flex';
       igPlaceholder.innerHTML = '<i data-lucide="image"></i><span>自動生成画像<br>（Instagram用は画像が必須になります）</span>';
     }
     lucide.createIcons();
