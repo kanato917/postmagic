@@ -15,6 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     submitBtn.disabled = true;
 
+    // --- ★ここから画像処理を追加しました ---
+    const imageInput = document.getElementById('sourceImage');
+    const imageFile = imageInput.files[0];
+    let base64Image = null;
+
+    if (imageFile) {
+      base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        // 画像をテキストデータ（Base64）に変換し、不要なヘッダーを削除
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(imageFile);
+      });
+    }
+    // --- ★ここまで ---
+
     const payload = {
       sns: Array.from(postForm.querySelectorAll('input[name="sns"]:checked')).map(cb => cb.value),
       sourceText: document.getElementById('sourceText').value,
@@ -25,11 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
       withImage: document.getElementById('withImage').checked,
       memo: document.getElementById('memo').value,
       scheduleDatetime: document.getElementById('scheduleDatetime').value,
+      imageBuffer: base64Image, // ★画像データを追加
+      imageName: imageFile ? imageFile.name : null, // ★ファイル名を追加
       timestamp: new Date().toISOString()
     };
 
     try {
-      // ★ここにMake.comのWebhook URLを貼り付けます！
+      // あなたのMake.com Webhook URL
       const WEBHOOK_URL = 'https://hook.eu1.make.com/xdrqbno2q72vqyj39owolec54b9m8yhe';
 
       const response = await fetch(WEBHOOK_URL, {
@@ -39,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (response.ok) {
-        alert("送信成功！Notionを確認してください。");
+        alert("送信成功！画像を含めてNotionに送りました。");
         postForm.reset();
         updatePreview();
       } else {
