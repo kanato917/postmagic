@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (imageFile) {
       base64Image = await new Promise((resolve) => {
         const reader = new FileReader();
-        // 画像をテキストデータ（Base64）に変換し、不要なヘッダーを削除
-        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        // 修正後（ラベルを残して丸ごと送る）
+        reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(imageFile);
       });
     }
