@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (imageFile) {
       base64Image = await new Promise((resolve) => {
         const reader = new FileReader();
-        // 修正後（ラベルを残して丸ごと送る）
-        reader.onloadend = () => resolve(reader.result);
+        // ✅ 修正後（純粋なデータのみを抽出する形に戻す）
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
         reader.readAsDataURL(imageFile);
       });
     }
