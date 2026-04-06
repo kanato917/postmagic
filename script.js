@@ -50,8 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
       withImage:        document.getElementById('withImage').checked,
       memo:             document.getElementById('memo').value             || "",
       scheduleDatetime: document.getElementById('scheduleDatetime').value || "",
-      imageBuffer:      base64Image,           // 画像なし → null
-      imageName:        imageFile ? imageFile.name : null, // 画像なし → null
+      imageBuffer:      base64Image,                        // 画像なし → null
+      imageName:        imageFile ? imageFile.name : null,  // 画像なし → null
+      imageMimeType:    imageFile ? imageFile.type : null,  // 動的MIMEタイプ（例: image/jpeg, image/png）
       timestamp:        new Date().toISOString()
     };
 
