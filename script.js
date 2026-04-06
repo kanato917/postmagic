@@ -8,6 +8,18 @@ document.addEventListener('DOMContentLoaded', () => {
   postForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // ① 空送信バリデーション
+    // 文章・画像・URL のうち少なくとも1つに値があるか確認する
+    const textVal = document.getElementById('sourceText').value.trim();
+    const urlVal  = document.getElementById('sourceUrl').value.trim();
+    const imageInput = document.getElementById('sourceImage');
+    const imageFile  = imageInput.files[0];
+
+    if (!textVal && !urlVal && !imageFile) {
+      alert('内容を入力してください（文章・画像・URLのいずれか1つ以上が必要です）');
+      return;
+    }
+
     const submitBtn = postForm.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
 
@@ -15,38 +27,36 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     submitBtn.disabled = true;
 
-    // --- ★ここから画像処理を追加しました ---
-    const imageInput = document.getElementById('sourceImage');
-    const imageFile = imageInput.files[0];
+    // ② 画像処理：画像がある場合のみ Base64 変換、ない場合は null のまま
     let base64Image = null;
 
     if (imageFile) {
       base64Image = await new Promise((resolve) => {
         const reader = new FileReader();
-        // ✅ 修正後（純粋なデータのみを抽出する形に戻す）
+        // Make.com 解析エラー防止のため .split(',')[1] でヘッダーを除去
         reader.onloadend = () => resolve(reader.result.split(',')[1]);
         reader.readAsDataURL(imageFile);
       });
     }
-    // --- ★ここまで ---
 
+    // ③ ペイロード：値の有無に関わらず常に同じキー構造で送信
     const payload = {
-      sns: Array.from(postForm.querySelectorAll('input[name="sns"]:checked')).map(cb => cb.value),
-      sourceText: document.getElementById('sourceText').value,
-      sourceUrl: document.getElementById('sourceUrl').value,
-      purpose: document.getElementById('purpose').value,
-      tone: document.getElementById('tone').value,
-      hashtag: document.getElementById('hashtag').checked,
-      withImage: document.getElementById('withImage').checked,
-      memo: document.getElementById('memo').value,
-      scheduleDatetime: document.getElementById('scheduleDatetime').value,
-      imageBuffer: base64Image, // ★画像データを追加
-      imageName: imageFile ? imageFile.name : null, // ★ファイル名を追加
-      timestamp: new Date().toISOString()
+      sns:              Array.from(postForm.querySelectorAll('input[name="sns"]:checked')).map(cb => cb.value),
+      sourceText:       textVal  || "",
+      sourceUrl:        urlVal   || "",
+      purpose:          document.getElementById('purpose').value          || "",
+      tone:             document.getElementById('tone').value             || "",
+      hashtag:          document.getElementById('hashtag').checked,
+      withImage:        document.getElementById('withImage').checked,
+      memo:             document.getElementById('memo').value             || "",
+      scheduleDatetime: document.getElementById('scheduleDatetime').value || "",
+      imageBuffer:      base64Image,           // 画像なし → null
+      imageName:        imageFile ? imageFile.name : null, // 画像なし → null
+      timestamp:        new Date().toISOString()
     };
 
     try {
-      // あなたのMake.com Webhook URL
+      // Make.com Webhook URL
       const WEBHOOK_URL = 'https://hook.eu1.make.com/xdrqbno2q72vqyj39owolec54b9m8yhe';
 
       const response = await fetch(WEBHOOK_URL, {
@@ -56,15 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (response.ok) {
-        alert("送信成功！画像を含めてNotionに送りました。");
+        alert('送信成功！Notionにデータを送りました。');
         postForm.reset();
         updatePreview();
       } else {
-        throw new Error('送信エラー');
+        throw new Error(`送信エラー: ${response.status}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert("送信に失敗しました。");
+      alert('送信に失敗しました。ネットワーク接続をご確認ください。');
     } finally {
       submitBtn.innerHTML = originalText;
       lucide.createIcons();
