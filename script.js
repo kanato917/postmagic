@@ -27,16 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     submitBtn.disabled = true;
 
-    // ② 画像処理：画像がある場合のみ Base64 変換、ない場合は null のまま
-    let base64Image = null;
+    // ② 画像処理：画像がある場合は圧縮してから Base64 変換
+    //    Canvas APIでリサイズ（最大1920px）＆JPEG変換 → 5MB制限内に収める
+    let base64Image    = null;
+    let finalMimeType  = null;
 
     if (imageFile) {
-      base64Image = await new Promise((resolve) => {
+      const compressedBlob = await compressImage(imageFile);
+      base64Image   = await new Promise((resolve) => {
         const reader = new FileReader();
-        // Make.com 解析エラー防止のため .split(',')[1] でヘッダーを除去
         reader.onloadend = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(imageFile);
+        reader.readAsDataURL(compressedBlob);
       });
+      finalMimeType = 'image/jpeg'; // 圧縮後は常にJPEG
     }
 
     // ③ ペイロード：値の有無に関わらず常に同じキー構造で送信
@@ -50,9 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
       withImage:        document.getElementById('withImage').checked,
       memo:             document.getElementById('memo').value             || "",
       scheduleDatetime: document.getElementById('scheduleDatetime').value || "",
-      imageBuffer:      base64Image,                        // 画像なし → null
-      imageName:        imageFile ? imageFile.name : null,  // 画像なし → null
-      imageMimeType:    imageFile ? imageFile.type : null,  // 動的MIMEタイプ（例: image/jpeg, image/png）
+      imageBuffer:      base64Image,                                  // 画像なし → null
+      imageName:        imageFile ? imageFile.name : null,              // 画像なし → null
+      imageMimeType:    finalMimeType,                                  // 圧縮後は常に image/jpeg
       timestamp:        new Date().toISOString()
     };
 
@@ -181,6 +184,40 @@ document.addEventListener('DOMContentLoaded', () => {
   withImageCheckbox.addEventListener('change', updatePreview);
 });
 
+
+// ----- 画像圧縮ユーティリティ -----
+// Canvas API を使って画像をリサイズ＆JPEG変換し、Webhookの5MB制限に収める
+// maxWidth/maxHeight: 最大辺のピクセル数（デフォルト1920px）
+// quality: JPEG品質 0〜1（デフォルト0.85 = 85%）
+async function compressImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.85) {
+  return new Promise((resolve) => {
+    const img    = new Image();
+    const objUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objUrl);
+
+      let { width, height } = img;
+
+      // アスペクト比を維持しながら最大サイズ内に収める
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width  = Math.round(width  * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+      // JPEG形式で圧縮して Blob に変換
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
+    };
+
+    img.src = objUrl;
+  });
+}
 
 // Extra css for spinner
 const style = document.createElement('style');
